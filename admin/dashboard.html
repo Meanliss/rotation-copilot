@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotation Copilot - Admin</title>
+  <style>
+:root {
+  --color-bg: #0d1117; --color-bg-elevated: #161b22; --color-bg-overlay: #1c2129;
+  --color-border: #30363d; --color-border-muted: #21262d;
+  --color-text: #c9d1d9; --color-text-muted: #8b949e; --color-text-bright: #e6edf3;
+  --color-accent: #1f6feb; --color-accent-hover: #388bfd; --color-accent-subtle: #1f6feb22;
+  --color-success: #3fb950; --color-success-subtle: #3fb95022;
+  --color-warning: #d29922; --color-warning-subtle: #d2992222;
+  --color-danger: #f85149; --color-danger-subtle: #da363322;
+  --color-info: #58a6ff;
+  --radius-sm: 4px; --radius: 6px; --radius-lg: 8px;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  --sidebar-w: 220px; --header-h: 52px; --content-pad: 24px;
+  --transition: 150ms ease;
+}
+[data-theme="light"] {
+  --color-bg: #ffffff; --color-bg-elevated: #f6f8fa; --color-bg-overlay: #f0f2f5;
+  --color-border: #d0d7de; --color-border-muted: #d8dee4;
+  --color-text: #1f2328; --color-text-muted: #656d76; --color-text-bright: #0d1117;
+  --color-accent: #0969da; --color-accent-hover: #0860ca; --color-accent-subtle: #0969da15;
+  --color-success: #1a7f37; --color-success-subtle: #1a7f3715;
+  --color-warning: #9a6700; --color-warning-subtle: #9a670015;
+  --color-danger: #cf222e; --color-danger-subtle: #cf222e15;
+  --color-info: #0969da;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:14px;line-height:1.5;color:var(--color-text);background:var(--color-bg);min-height:100vh;overflow-x:hidden}
+a{color:var(--color-accent);text-decoration:none}a:hover{text-decoration:underline}
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);background:var(--color-bg-elevated);border-right:1px solid var(--color-border-muted);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar-brand{height:var(--header-h);display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--color-border-muted);gap:10px;font-weight:600;font-size:15px;color:var(--color-text-bright)}
+.sidebar-brand .icon{color:var(--color-accent);width:22px;height:22px}
+.sidebar-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);color:var(--color-text-muted);cursor:pointer;transition:all var(--transition);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:inherit;text-decoration:none}
+.nav-item:hover{background:var(--color-bg-overlay);color:var(--color-text);text-decoration:none}
+.nav-item.active{background:var(--color-accent-subtle);color:var(--color-accent)}
+.nav-item .nav-icon{width:18px;height:18px;flex-shrink:0}
+.nav-item .badge{margin-left:auto;font-size:11px;padding:1px 7px;border-radius:10px;background:var(--color-accent-subtle);color:var(--color-accent)}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--color-border-muted);font-size:12px;color:var(--color-text-muted)}
+.main-content{margin-left:var(--sidebar-w);flex:1;min-width:0}
+.page-header{height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 var(--content-pad);border-bottom:1px solid var(--color-border-muted);background:var(--color-bg-elevated);position:sticky;top:0;z-index:50}
+.page-title{font-size:18px;font-weight:600;color:var(--color-text-bright)}
+.page-header-actions{display:flex;gap:8px;align-items:center}
+.page-body{padding:var(--content-pad)}
+.card{background:var(--color-bg-elevated);border:1px solid var(--color-border-muted);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:16px;transition:border-color var(--transition)}
+.card:hover{border-color:var(--color-border)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-weight:600;color:var(--color-text-bright)}
+.card-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--color-border-muted)}
+.card-row:last-child{border-bottom:none}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--color-bg-elevated);border:1px solid var(--color-border-muted);border-radius:var(--radius-lg);padding:16px}
+.stat-card .stat-label{font-size:12px;color:var(--color-text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em}
+.stat-card .stat-value{font-size:28px;font-weight:700;color:var(--color-text-bright)}
+.stat-card .stat-sub{font-size:12px;color:var(--color-text-muted);margin-top:4px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;line-height:1.6}
+.badge-active{background:var(--color-success-subtle);color:var(--color-success)}
+.badge-error{background:var(--color-danger-subtle);color:var(--color-danger)}
+.badge-inactive{background:var(--color-bg-overlay);color:var(--color-text-muted)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-bg-elevated);color:var(--color-text);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;transition:all var(--transition);white-space:nowrap;line-height:1.5}
+.btn:hover{background:var(--color-bg-overlay);border-color:var(--color-text-muted)}
+.btn-primary{background:var(--color-accent);border-color:var(--color-accent);color:#fff}
+.btn-primary:hover{background:var(--color-accent-hover);border-color:var(--color-accent-hover)}
+.btn-danger{color:var(--color-danger);border-color:var(--color-danger-subtle)}
+.btn-danger:hover{background:var(--color-danger-subtle)}
+.btn-icon{padding:6px 8px}.btn-sm{padding:3px 10px;font-size:12px}
+input[type="text"],input[type="number"],input[type="password"],input[type="search"],select,textarea{padding:7px 12px;border:1px solid var(--color-border);border-radius:var(--radius);background:var(--color-bg);color:var(--color-text);font-size:13px;font-family:inherit;transition:border-color var(--transition);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--color-accent);box-shadow:0 0 0 2px var(--color-accent-subtle)}
+.table-wrap{overflow-x:auto;border:1px solid var(--color-border-muted);border-radius:var(--radius-lg)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 16px;text-align:left;border-bottom:1px solid var(--color-border-muted);font-size:13px}
+th{background:var(--color-bg-elevated);font-weight:600;color:var(--color-text-muted);font-size:12px;text-transform:uppercase;letter-spacing:0.04em;position:sticky;top:0}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--color-bg-overlay)}
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 20px;border-radius:var(--radius);font-size:14px;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:toast-in 0.3s ease;max-width:360px}
+.toast-success{background:var(--color-success)}.toast-error{background:var(--color-danger)}.toast-info{background:var(--color-accent)}
+@keyframes toast-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:500;animation:fade-in .15s ease}
+.modal{background:var(--color-bg-elevated);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px;min-width:400px;max-width:560px;max-height:80vh;overflow-y:auto;animation:modal-in .2s ease}
+.modal h2{font-size:16px;margin-bottom:16px;color:var(--color-text-bright)}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+@keyframes modal-in{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.flex{display:flex}.flex-col{flex-direction:column}.gap-2{gap:8px}.gap-3{gap:12px}
+.items-center{align-items:center}.justify-between{justify-content:space-between}.flex-1{flex:1}
+.mb-3{margin-bottom:12px}.mt-4{margin-top:16px}
+.mono{font-family:var(--font-mono);font-size:12px;word-break:break-all}
+.key-display{background:var(--color-bg);padding:5px 10px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:12px;word-break:break-all}
+.spinner{width:20px;height:20px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:48px 24px;color:var(--color-text-muted)}
+.empty-state .empty-icon{width:48px;height:48px;margin:0 auto 12px;opacity:.4}
+@media(max-width:768px){.sidebar{width:60px}.sidebar-brand span,.nav-item span:not(.badge){display:none}.main-content{margin-left:60px}.stats-grid{grid-template-columns:1fr 1fr}.page-body{padding:16px}}
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+        <span>Rotation Copilot</span>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav">
+        <button class="nav-item active" data-page="dashboard"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span>Dashboard</span></button>
+        <button class="nav-item" data-page="accounts"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Accounts</span><span class="badge" id="account-badge">0</span></button>
+        <button class="nav-item" data-page="proxy"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span><span>API Proxy</span></button>
+        <button class="nav-item" data-page="traffic"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span><span>Traffic Logs</span></button>
+        <button class="nav-item" data-page="settings"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span>Settings</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="flex items-center gap-2">
+          <span class="spinner" id="status-dot" style="width:8px;height:8px;border-width:2px;"></span>
+          <span id="status-text">Connecting...</span>
+        </div>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="page" id="page-dashboard" style="display:block"><div class="page-header"><h1 class="page-title">Dashboard</h1><div class="page-header-actions"><button class="btn" onclick="App.refreshAll()">Refresh</button></div></div><div class="page-body" id="dashboard-content"></div></div>
+      <div class="page" id="page-accounts" style="display:none"><div class="page-header"><h1 class="page-title">Accounts</h1><div class="page-header-actions"><button class="btn" onclick="App.refreshAll()">Refresh All</button><button class="btn btn-primary" onclick="App.showAddAccountModal()">+ Add Account</button></div></div><div class="page-body" id="accounts-content"></div></div>
+      <div class="page" id="page-proxy" style="display:none"><div class="page-header"><h1 class="page-title">API Proxy</h1><div class="page-header-actions"><button class="btn" onclick="App.refreshAll()">Refresh</button></div></div><div class="page-body" id="proxy-content"></div></div>
+      <div class="page" id="page-traffic" style="display:none"><div class="page-header"><h1 class="page-title">Traffic Logs</h1><div class="page-header-actions"><button class="btn btn-danger btn-sm" onclick="App.clearTrafficLogs()">Clear Logs</button></div></div><div class="page-body" id="traffic-content"></div></div>
+      <div class="page" id="page-settings" style="display:none"><div class="page-header"><h1 class="page-title">Settings</h1></div><div class="page-body" id="settings-content"></div></div>
+    </main>
+  </div>
+  <div class="toast-container" id="toast-container"></div>
+  <div class="modal-overlay" id="modal-overlay" style="display:none"><div class="modal" id="modal-content"></div></div>
+<script>
+var App={currentPage:'dashboard',accounts:[],apiKeys:[],stats:{},trafficLogs:[],loading:false,
+async api(method,path,body){var opts={method,headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);var res=await fetch('/admin'+path,opts);if(!res.ok){var err=await res.json().catch(function(){return{}});throw new Error(err.error||err.message||'Request failed')}return res.json()},
+get(path){return this.api('GET',path)},post(path,b){return this.api('POST',path,b)},del(path){return this.api('DELETE',path)},
+toast(message,type){type=type||'info';var c=document.getElementById('toast-container');var el=document.createElement('div');el.className='toast toast-'+type;el.textContent=message;c.appendChild(el);setTimeout(function(){el.style.opacity='0';el.style.transition='opacity 0.3s';setTimeout(function(){el.remove()},300)},3500)},
+navigate(page){this.currentPage=page;document.querySelectorAll('.nav-item').forEach(function(btn){btn.classList.toggle('active',btn.dataset.page===page)});document.querySelectorAll('.page').forEach(function(p){p.style.display=p.id==='page-'+page?'block':'none'});this.loadPage(page)},
+loadPage(page){switch(page){case'dashboard':this.renderDashboard();break;case'accounts':this.renderAccounts();break;case'proxy':this.renderProxy();break;case'traffic':this.renderTraffic();break;case'settings':this.renderSettings();break}},
+async refreshAll(){this.loading=true;try{var[stats,accounts,keys]=await Promise.all([this.get('/api/stats').catch(function(){return null}),this.get('/api/accounts').catch(function(){return[]}),this.get('/api/api-keys').catch(function(){return[]})]);this.stats=stats||{};this.accounts=accounts||[];this.apiKeys=keys||[];document.getElementById('account-badge').textContent=this.accounts.length;this.updateStatus('ok')}catch(e){this.updateStatus('error')}this.loading=false;this.loadPage(this.currentPage)},
+updateStatus(state){var dot=document.getElementById('status-dot');var text=document.getElementById('status-text');if(state==='ok'){dot.style.borderTopColor='var(--color-success)';text.textContent='Connected'}else{dot.style.borderTopColor='var(--color-danger)';text.textContent='Error'}},
+renderDashboard(){var s=this.stats;var html='<div class="stats-grid">'+statCard('Active Accounts',(s.activeAccounts||0)+' / '+(s.totalAccounts||0),'Accounts ready to proxy')+statCard('API Keys',s.totalKeys||0,'Keys issued to clients')+statCard('Total Requests',s.totalRequests||0,'Requests proxied this session')+statCard('Uptime',formatUptime(),'Server running since start')+'</div>';html+='<div class="card"><div class="card-header">Account Overview</div>';if(this.accounts.length===0){html+=emptyState('No accounts configured.')}else{this.accounts.forEach(function(a,i){html+='<div class="card-row"><div class="flex items-center gap-2"><span class="badge badge-'+a.status+'">'+a.status+'</span><span>'+esc(a.label||'Account '+(i+1))+'</span></div><span class="mono" style="color:var(--color-text-muted);font-size:12px">'+(a.lastUsed?'Last: '+timeAgo(a.lastUsed):'Never used')+'</span></div>'})}html+='</div>';html+='<div class="card"><div class="card-header">API Keys</div>';if(this.apiKeys.length===0){html+=emptyState('No API keys generated.')}else{this.apiKeys.forEach(function(k){html+='<div class="card-row"><div><span class="key-display">'+esc(k.key)+'</span></div><span style="color:var(--color-text-muted);font-size:12px">'+(k.requestCount||0)+' requests</span></div>'})}html+='</div>';document.getElementById('dashboard-content').innerHTML=html},
+renderAccounts(){var html='';if(this.accounts.length===0){html=emptyState('No accounts yet. Click "Add Account" to get started.')}else{this.accounts.forEach(function(a,i){html+='<div class="card"><div class="card-header"><div class="flex items-center gap-2"><span class="badge badge-'+a.status+'">'+a.status+'</span><span style="font-weight:600">'+esc(a.label||'Account '+(i+1))+'</span></div><div class="flex gap-2">'+(a.status==='error'||a.status==='re-auth'?'<button class="btn btn-sm" onclick="App.reAuthAccount(\''+a.id+'\')">Re-auth</button>':'')+'<button class="btn btn-danger btn-sm" onclick="App.removeAccount(\''+a.id+'\')">Remove</button></div></div><div class="card-row"><span>Type</span><span>'+esc(a.accountType||'individual')+'</span></div><div class="card-row"><span>ID</span><span class="mono">'+esc(a.id.slice(0,16))+'...</span></div><div class="card-row"><span>Last Used</span><span>'+(a.lastUsed?timeAgo(a.lastUsed):'Never')+'</span></div><div class="card-row"><span>Errors</span><span>'+(a.errorCount||0)+'</span></div></div>'})}document.getElementById('accounts-content').innerHTML=html},
+showAddAccountModal(){showModal('<h2>Add GitHub Copilot Account</h2><div class="mb-3"><label>Account Label</label><input id="add-label" placeholder="e.g. Work, Personal" style="margin-top:4px"></div><div class="mb-3"><label>Account Type</label><select id="add-type" style="margin-top:4px"><option value="individual">Individual</option><option value="business">Business</option><option value="enterprise">Enterprise</option></select></div><div class="mb-3"><label>GitHub Token</label><input id="add-token" type="password" placeholder="ghp_... or leave empty for OAuth" style="margin-top:4px"></div><p style="font-size:12px;color:var(--color-text-muted)">Leave token empty to use OAuth device flow.</p>',async function(){var label=document.getElementById('add-label').value||'Account';var type=document.getElementById('add-type').value;var token=document.getElementById('add-token').value;if(token){await App.post('/api/accounts',{label:label,accountType:type,githubToken:token});App.toast('Account added','success')}else{var dc=await App.post('/api/device-code',{accountType:type});showModal('<h2>OAuth Device Flow</h2><div class="card" style="text-align:center"><p style="font-size:16px;font-weight:700;letter-spacing:0.1em;margin:12px 0">'+esc(dc.user_code)+'</p><a href="'+esc(dc.verification_uri)+'" target="_blank" class="btn btn-primary">Open '+esc(dc.verification_uri)+'</a></div><p style="font-size:12px;color:var(--color-text-muted);margin-top:12px">After authorizing, click below to complete.</p>',async function(){await App.post('/api/accounts',{deviceCode:dc.device_code,label:label,accountType:type});App.toast('Account added via OAuth','success');closeModal();App.refreshAll()},'Complete Setup');return}closeModal();App.refreshAll()},'Add Account')},
+async reAuthAccount(id){try{await App.post('/api/accounts/'+id+'/re-auth');App.toast('Re-authenticated','success');App.refreshAll()}catch(e){App.toast(e.message,'error')}},
+async removeAccount(id){if(!confirm('Remove this account?'))return;try{await App.del('/api/accounts/'+id);App.toast('Account removed','success');App.refreshAll()}catch(e){App.toast(e.message,'error')}},
+renderProxy(){var html='<div class="card"><div class="card-header">Server Information</div><div class="card-row"><span>Proxy URL</span><span class="mono">'+esc(window.location.origin)+'</span></div><div class="card-row"><span>Endpoints</span><span class="mono" style="font-size:11px">/v1/chat/completions, /v1/messages, /v1/responses</span></div></div>';html+='<div class="card"><div class="card-header">API Keys<button class="btn btn-primary btn-sm" onclick="App.createApiKey()">+ Generate Key</button></div>';if(this.apiKeys.length===0){html+=emptyState('No API keys yet.')}else{this.apiKeys.forEach(function(k){html+='<div class="card-row"><div class="flex items-center gap-2 flex-1"><span class="key-display" style="flex:1">'+esc(k.key)+'</span><button class="btn btn-sm btn-icon" onclick="App.copyKey(\''+esc(k.key)+'\')" title="Copy">Copy</button></div><div class="flex items-center gap-2"><span style="font-size:12px;color:var(--color-text-muted)">'+(k.requestCount||0)+' req</span><button class="btn btn-danger btn-sm btn-icon" onclick="App.revokeKey(\''+esc(k.key)+'\')">Revoke</button></div></div>'})}html+='</div>';html+='<div class="card"><div class="card-header">Account Dispatch</div><div class="card-row"><span>Strategy</span><span>Round-Robin</span></div><div class="card-row"><span>Active Accounts</span><span>'+(this.stats.activeAccounts||0)+'</span></div></div>';document.getElementById('proxy-content').innerHTML=html},
+async createApiKey(){var label=prompt('Key label:','Default Key');if(!label)return;try{var entry=await App.post('/api/api-keys',{label:label});App.toast('Key generated: '+entry.key,'success');App.refreshAll()}catch(e){App.toast(e.message,'error')}},
+async revokeKey(key){if(!confirm('Revoke this API key?'))return;try{await App.del('/api/api-keys/'+encodeURIComponent(key));App.toast('Key revoked','success');App.refreshAll()}catch(e){App.toast(e.message,'error')}},
+copyKey(key){navigator.clipboard.writeText(key).then(function(){App.toast('Copied','success')}).catch(function(){App.toast('Copy failed','error')})},
+renderTraffic(){var html='';if(this.trafficLogs.length===0){html=emptyState('No traffic logged yet.')}else{html+='<div class="table-wrap"><table><thead><tr><th>Time</th><th>Method</th><th>Endpoint</th><th>Model</th><th>Account</th><th>Status</th><th>Tokens</th></tr></thead><tbody>';this.trafficLogs.slice().reverse().forEach(function(log){html+='<tr><td>'+esc(log.time||'')+'</td><td>'+esc(log.method||'POST')+'</td><td class="mono">'+esc(log.endpoint||'')+'</td><td>'+esc(log.model||'-')+'</td><td>'+esc(log.account||'-')+'</td><td><span class="badge '+(log.status<400?'badge-active':'badge-error')+'">'+log.status+'</span></td><td>'+(log.tokens||'-')+'</td></tr>'});html+='</tbody></table></div>'}document.getElementById('traffic-content').innerHTML=html},
+clearTrafficLogs(){this.trafficLogs=[];this.toast('Cleared','info');this.renderTraffic()},
+renderSettings(){var theme=document.documentElement.getAttribute('data-theme')||'dark';var html='<div class="card"><div class="card-header">Theme</div><div class="flex gap-2">'+themeBtn('dark','Dark',theme)+themeBtn('light','Light',theme)+themeBtn('auto','Auto',theme)+'</div></div>';html+='<div class="card"><div class="card-header">About</div><div class="card-row"><span>Application</span><span>Rotation Copilot</span></div><div class=\"card-row\"><span>Version</span><span>1.0.0</span></div><div class="card-row"><span>Runtime</span><span>Rust/Tokio</span></div><div class="card-row"><span>OpenAI Endpoint</span><span class="mono">/v1/chat/completions</span></div><div class="card-row"><span>Anthropic Endpoint</span><span class="mono">/v1/messages</span></div><div class="card-row"><span>Responses Endpoint</span><span class="mono">/v1/responses</span></div></div>';document.getElementById('settings-content').innerHTML=html},
+setTheme(theme){document.documentElement.setAttribute('data-theme',theme);localStorage.setItem('theme',theme);this.renderSettings()}};
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function statCard(l,v,s){return'<div class="stat-card"><div class="stat-label">'+esc(l)+'</div><div class="stat-value">'+esc(v)+'</div>'+(s?'<div class="stat-sub">'+esc(s)+'</div>':'')+'</div>'}
+function emptyState(m){return'<div class="empty-state"><div class="empty-icon">-</div><p>'+esc(m)+'</p></div>'}
+function timeAgo(ts){var d=Date.now()-ts;var s=Math.floor(d/1000);if(s<60)return s+'s ago';var m=Math.floor(s/60);if(m<60)return m+'m ago';var h=Math.floor(m/60);if(h<24)return h+'h ago';return Math.floor(h/24)+'d ago'}
+function formatUptime(){var s=Math.floor(performance.now()/1000);if(s<60)return s+'s';var m=Math.floor(s/60);if(m<60)return m+'m';return Math.floor(m/60)+'h'}
+function themeBtn(t,l,c){return'<button class="btn '+(t===c?'btn-primary':'')+'" onclick="App.setTheme(\''+t+'\')">'+l+'</button>'}
+function showModal(html,onConfirm,confirmText){confirmText=confirmText||'OK';var o=document.getElementById('modal-overlay');var c=document.getElementById('modal-content');c.innerHTML=html+'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" id="modal-confirm-btn">'+esc(confirmText)+'</button></div>';o.style.display='flex';document.getElementById('modal-confirm-btn').onclick=async function(){if(onConfirm)await onConfirm()}}
+function closeModal(){document.getElementById('modal-overlay').style.display='none'}
+document.addEventListener('DOMContentLoaded',function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('.nav-item').forEach(function(b){b.addEventListener('click',function(){App.navigate(b.dataset.page)})});document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();if(e.ctrlKey||e.metaKey){var s={'1':'dashboard','2':'accounts','3':'proxy','4':'traffic','5':'settings'};var p=s[e.key];if(p){e.preventDefault();App.navigate(p)}}});document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===e.currentTarget)closeModal()});App.refreshAll();setInterval(function(){App.refreshAll()},15000)});
+</script>
+</body>
+</html>
