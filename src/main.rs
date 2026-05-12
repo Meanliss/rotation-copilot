@@ -19,7 +19,7 @@ use state::{AppState, ServerConfig};
 #[command(name = "rotation-copilot", version, about = "Multi-account GitHub Copilot proxy with round-robin rotation")]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -72,7 +72,18 @@ enum Commands {
 fn main() {
     let cli = Cli::parse();
 
-    match cli.command {
+    // Default to `start --desktop` when double-clicked (no arguments)
+    let command = cli.command.unwrap_or(Commands::Start {
+        port: 4141,
+        account_type: "individual".into(),
+        github_token: None,
+        rate_limit: None,
+        rate_limit_wait: false,
+        verbose: false,
+        desktop: true,
+    });
+
+    match command {
         Commands::Start {
             port,
             account_type,
