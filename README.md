@@ -15,6 +15,8 @@ Single binary, ~3 MB. No dependencies.
 - **Admin dashboard** — Built-in web UI at `/admin` for account management, API keys, traffic logs, and settings
 - **Native desktop mode** — `--desktop` flag opens the admin dashboard in a native window
 - **Auto token refresh** — Copilot tokens are automatically refreshed before expiry
+- **Network accessible** — Binds to `0.0.0.0` by default, other machines can connect via LAN IP
+- **Health check** — `GET /health` endpoint for connectivity testing
 - **Rate limiting** — Optional per-request rate limiting with wait or reject mode
 
 ## Download
@@ -41,6 +43,12 @@ rotation-copilot start --rate-limit 2
 
 # Rate limit with wait mode (queue instead of 429)
 rotation-copilot start --rate-limit 2 --rate-limit-wait
+
+# Bind to specific interface
+rotation-copilot start --host 192.168.1.100
+
+# Bind to localhost only (no network access)
+rotation-copilot start --host 127.0.0.1
 
 # Verbose logging
 rotation-copilot start --verbose
@@ -118,6 +126,8 @@ curl http://localhost:4141/v1/messages \
 | `POST` | `/admin/api/api-keys` | Create API key |
 | `DELETE` | `/admin/api/api-keys/{key}` | Revoke API key |
 | `GET` | `/admin/api/stats` | Server statistics |
+| `GET` | `/health` | Health check (status, version, accounts) |
+| `GET` | `/v1/health` | Health check (alias) |
 | `GET` | `/token` | Debug: get active Copilot token |
 | `GET` | `/usage` | Get Copilot usage/quota |
 
@@ -130,6 +140,37 @@ All data is stored in:
 
 Files:
 - `accounts.json` — Accounts, API keys, and settings
+
+## Network Access (Connect from Other Machines)
+
+The server binds to `0.0.0.0` by default, making it accessible from any machine on your network.
+
+On startup, the banner shows your LAN IP:
+```
+╔══════════════════════════════════════════════════╗
+║          Rotation Copilot                        ║
+╠══════════════════════════════════════════════════╣
+║  Local:      http://127.0.0.1:4141              ║
+║  Network:    http://192.168.1.100:4141           ║
+║  Admin:      http://127.0.0.1:4141/admin        ║
+╚══════════════════════════════════════════════════╝
+```
+
+From another machine, test connectivity:
+```bash
+curl http://192.168.1.100:4141/health
+# {"status":"ok","version":"1.0.0","accounts":{"active":1,"total":1},"api_keys_required":true}
+```
+
+Then use the network IP as your API base:
+```bash
+curl http://192.168.1.100:4141/v1/chat/completions \
+  -H "Authorization: Bearer rc-yourkey" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello!"}]}'
+```
+
+> **Tip**: If you have API keys configured, remote machines need a valid `rc-*` key in the `Authorization` header.
 
 ## Account Types
 

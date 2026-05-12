@@ -5,6 +5,7 @@ mod state;
 
 use std::sync::Arc;
 
+use axum::extract::State;
 use axum::routing::{delete, get, post};
 use axum::Router;
 use clap::{Parser, Subcommand};
@@ -29,6 +30,10 @@ enum Commands {
         /// Port to listen on
         #[arg(short, long, default_value_t = 4141)]
         port: u16,
+
+        /// Host/IP to bind to (0.0.0.0 = all interfaces)
+        #[arg(long, default_value = "0.0.0.0")]
+        host: String,
 
         /// Account type (individual, business, enterprise)
         #[arg(long, default_value = "individual")]
@@ -75,6 +80,7 @@ fn main() {
     // Default to `start --desktop` when double-clicked (no arguments)
     let command = cli.command.unwrap_or(Commands::Start {
         port: 4141,
+        host: "0.0.0.0".into(),
         account_type: "individual".into(),
         github_token: None,
         rate_limit: None,
@@ -86,6 +92,7 @@ fn main() {
     match command {
         Commands::Start {
             port,
+            host,
             account_type,
             github_token,
             rate_limit,
@@ -112,6 +119,7 @@ fn main() {
                 rt.spawn(async move {
                     run_server(
                         port,
+                        host,
                         account_type,
                         github_token,
                         rate_limit,
@@ -138,6 +146,7 @@ fn main() {
                 rt.block_on(async {
                     run_server(
                         port,
+                        host,
                         account_type,
                         github_token,
                         rate_limit,
@@ -197,8 +206,29 @@ fn rustc_version() -> String {
         .to_string()
 }
 
+/// Get the machine's local network IP by connecting to a public address
+fn get_local_ip() -> Option<String> {
+    let socket = std::net::UdpSocket::bind("0.0.0.0:0").ok()?;
+    socket.connect("8.8.8.8:80").ok()?;
+    let addr = socket.local_addr().ok()?;
+    Some(addr.ip().to_string())
+}
+
+async fn handle_health(State(state): State<AppState>) -> axum::Json<serde_json::Value> {
+    let active = state.store.get_active_accounts().await.len();
+    let total = state.store.get_all_accounts().await.len();
+    let has_keys = state.store.has_api_keys().await;
+    axum::Json(serde_json::json!({
+        "status": "ok",
+        "version": env!("CARGO_PKG_VERSION"),
+        "accounts": { "active": active, "total": total },
+        "api_keys_required": has_keys,
+    }))
+}
+
 async fn run_server(
     port: u16,
+    host: String,
     account_type: String,
     github_token: Option<String>,
     rate_limit: Option<u64>,
@@ -297,21 +327,25 @@ async fn run_server(
     // Print startup info
     let active = app_state.store.get_active_accounts().await.len();
     let total = app_state.store.get_all_accounts().await.len();
+    let local_ip = get_local_ip().unwrap_or_else(|| "127.0.0.1".into());
 
     println!("\n╔══════════════════════════════════════════════════╗");
     println!("║          Rotation Copilot                        ║");
     println!("╠══════════════════════════════════════════════════╣");
-    println!("║  Server:     http://127.0.0.1:{:<18}║", port);
+    println!("║  Local:      http://127.0.0.1:{:<18}║", port);
+    let net_url = format!("http://{}:{}", local_ip, port);
+    println!("║  Network:    {:<36}║", net_url);
     println!("║  Admin:      http://127.0.0.1:{}/admin{:>8}║", port, "");
     println!("║  Accounts:   {}/{:<33}║", active, total);
     println!("╚══════════════════════════════════════════════════╝\n");
 
     // Start server
-    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}"))
+    let bind_addr = format!("{host}:{port}");
+    let listener = tokio::net::TcpListener::bind(&bind_addr)
         .await
-        .expect("Failed to bind port");
+        .expect(&format!("Failed to bind {bind_addr}"));
 
-    tracing::info!("Listening on 0.0.0.0:{port}");
+    tracing::info!("Listening on {bind_addr}");
     axum::serve(listener, app).await.expect("Server error");
 }
 
@@ -352,6 +386,8 @@ fn build_router(state: AppState, oauth_store: Arc<OAuthStore>) -> Router {
 
     Router::new()
         .route("/", root)
+        .route("/health", get(handle_health))
+        .route("/v1/health", get(handle_health))
         .nest("/admin", admin)
         .route("/token", get(routes::proxy::handle_token))
         .route("/usage", get(routes::proxy::handle_usage))
