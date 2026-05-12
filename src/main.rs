@@ -1,3 +1,4 @@
+// Use console subsystem normally — we'll hide/free the console in desktop mode
 mod account_store;
 mod routes;
 mod services;
@@ -88,6 +89,12 @@ fn main() {
         verbose: false,
         desktop: true,
     });
+
+    // Re-attach to parent console for CLI mode (since we use windows_subsystem = "windows")
+    let is_desktop = matches!(&command, Commands::Start { desktop: true, .. });
+    if is_desktop {
+        hide_console();
+    }
 
     match command {
         Commands::Start {
@@ -191,6 +198,22 @@ fn main() {
             let token_file = dir.join("github_token");
             println!("Token file: {}", token_file.display());
             println!("Token file exists: {}", token_file.exists());
+        }
+    }
+}
+
+/// Hide the console window in desktop mode
+fn hide_console() {
+    #[cfg(windows)]
+    unsafe {
+        extern "system" {
+            fn GetConsoleWindow() -> *mut std::ffi::c_void;
+            fn ShowWindow(hWnd: *mut std::ffi::c_void, nCmdShow: i32) -> i32;
+        }
+        const SW_HIDE: i32 = 0;
+        let console = GetConsoleWindow();
+        if !console.is_null() {
+            ShowWindow(console, SW_HIDE);
         }
     }
 }
